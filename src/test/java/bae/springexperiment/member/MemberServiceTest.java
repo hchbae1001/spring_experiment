@@ -29,6 +29,7 @@ public class MemberServiceTest {
                 .phone("01011112222")
                 .name("setup_member")
                 .nickname("setupMember")
+                .isRemoved(false)
                 .build();
         memberService.save(build);
         setupMember = memberService.findByEmail(build.getEmail());
@@ -62,13 +63,14 @@ public class MemberServiceTest {
     void save(){
         Member build = Member.builder()
                 .email("setupCreate@test.com")
-                .phone("01011112222")
+                .phone("01011112223")
                 .name("setup_member_create")
                 .nickname("setupMember_create")
                 .build();
         memberService.save(build);
         Member byEmail = memberService.findByEmail("setupCreate@test.com");
         assertThat(byEmail).isNotNull();
+        memberService.deleteById(byEmail.getId());
     }
 
     @Test
@@ -95,13 +97,14 @@ public class MemberServiceTest {
     @DisplayName("Pass_MemberService_update")
     void update(){
         setupMember.setName("John Doe");
-        memberService.save(setupMember);
+        memberService.update(setupMember);
         Member after = memberService.findById(setupMember.getId());
         assertThat(after.getName()).isEqualTo("John Doe");
     }
 
     @Test
     @DisplayName("Fail_MemberService_save_Duplicate")
+    @Transactional
     void save_fail(){
         Member duplicatePhone = Member.builder()
                 .email("duplicate@test.com")
@@ -139,23 +142,26 @@ public class MemberServiceTest {
 
     @Test
     @DisplayName("Fail_MemberService_update_Duplicate")
-    void update_fail(){
-        Member newMember = Member.builder()
+    @Transactional
+    void update_fail() {
+        Member setupMember2 = Member.builder()
                 .email("new@test.com")
                 .phone("01033334444")
                 .name("new_member")
                 .nickname("newMember")
                 .build();
-        memberService.save(newMember);
+        memberService.save(setupMember2);
+        Member newMember = memberService.findByEmail("new@test.com");
+        System.out.println("newMember = " + newMember.getId());
 
-        newMember.setPhone("01011112222"); // setupMember's  phone number
-        assertThatThrownBy(() -> memberService.save(newMember))
+        newMember.setPhone("01011112222"); // setupMember's phone number
+        assertThatThrownBy(() -> memberService.update(newMember))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("phone number already exists");
 
         newMember.setPhone("01033334444"); // phone number rollback
         newMember.setNickname("setupMember"); // setupMember's nickname
-        assertThatThrownBy(() -> memberService.save(newMember))
+        assertThatThrownBy(() -> memberService.update(newMember))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("nickname already exists");
     }

@@ -47,7 +47,7 @@ public class MemberRepositoryTest {
         Member build = Member.builder()
                 .email("testCreate@test.com")
                 .phone("01000000000")
-                .name("테스터")
+                .name("test")
                 .nickname("tester")
                 .build();
         memberRepository.save(build);
@@ -56,7 +56,7 @@ public class MemberRepositoryTest {
         assertThat(foundMember).isNotNull();
         assertThat(foundMember.getEmail()).isEqualTo("testCreate@test.com");
         assertThat(foundMember.getPhone()).isEqualTo("01000000000");
-        assertThat(foundMember.getName()).isEqualTo("테스터");
+        assertThat(foundMember.getName()).isEqualTo("test");
         assertThat(foundMember.getNickname()).isEqualTo("tester");
     }
 
@@ -124,5 +124,19 @@ public class MemberRepositoryTest {
 
         Member softDeletedMember = memberRepository.findById(setupMember.getId()).orElseThrow();
         assertThat(softDeletedMember.getIsRemoved()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Pass_Member_Exists_PhoneAndNickName")
+    void save_check(){
+        assertThat(memberRepository.existsByPhone(setupMember.getPhone())).isTrue();
+        assertThat(memberRepository.existsByNickname(setupMember.getNickname())).isTrue();
+    }
+
+    @Test
+    @DisplayName("Pass_Member_Not_Exists_PhoneAndNickName")
+    void update_check() {
+        assertThat(memberRepository.existsByPhoneAndIdNot("01011112222", setupMember.getId())).isFalse();
+        assertThat(memberRepository.existsByNicknameAndIdNot("setupMember", setupMember.getId())).isFalse();
     }
 }
