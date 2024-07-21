@@ -2,7 +2,7 @@ package bae.springexperiment.member.dto.response;
 
 import bae.springexperiment.entity.Member;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 public record MemberCommonResponse(
         long member_id,
@@ -10,8 +10,8 @@ public record MemberCommonResponse(
         String name,
         String nickname,
         String phone,
-        Instant created_at,
-        Instant updated_at
+        LocalDateTime created_at,
+        LocalDateTime updated_at
 
 ) {
     public MemberCommonResponse(Member member) {
