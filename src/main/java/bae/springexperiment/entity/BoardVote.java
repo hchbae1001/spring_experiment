@@ -15,6 +15,7 @@ import java.time.Instant;
 @Table(name = "BOARD_VOTE")
 public class BoardVote {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "vote_id", nullable = false)
     private Long id;
 
