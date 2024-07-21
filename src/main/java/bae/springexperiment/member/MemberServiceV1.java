@@ -21,6 +21,10 @@ public class MemberServiceV1 implements MemberService{
         if (memberRepository.existsByNickname(member.getNickname())){
             throw new RuntimeException("nickname already exists");
         }
+        if (memberRepository.existsByEmail(member.getEmail())){
+            throw new RuntimeException("email already exists");
+        }
+
         memberRepository.save(member);
     }
 
@@ -35,6 +39,10 @@ public class MemberServiceV1 implements MemberService{
 
         if (memberRepository.existsByNicknameAndIdNot(member.getNickname(), member.getId())) {
             throw new RuntimeException("nickname already exists");
+        }
+
+        if (memberRepository.existsByEmailAndIdNot(member.getEmail(), member.getId())){
+            throw new RuntimeException("Email already exists");
         }
 
         existingMember.setName(member.getName());

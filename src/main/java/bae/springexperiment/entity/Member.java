@@ -43,4 +43,15 @@ public class Member {
     @Column(name = "is_removed")
     private Boolean isRemoved;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
 }
