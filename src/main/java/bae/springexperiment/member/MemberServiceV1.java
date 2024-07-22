@@ -1,6 +1,14 @@
 package bae.springexperiment.member;
 
 import bae.springexperiment.entity.Member;
+import bae.springexperiment.error.CustomException;
+import bae.springexperiment.error.ErrorCode;
+import bae.springexperiment.member.dto.request.LoginRequest;
+import bae.springexperiment.member.dto.response.LoginResponse;
+import bae.springexperiment.member.dto.response.MemberCommonResponse;
+import bae.springexperiment.util.BcryptUtil;
+import bae.springexperiment.config.jwt.AuthInformation;
+import bae.springexperiment.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberServiceV1 implements MemberService{
     private final MemberRepository memberRepository;
-
+    private final JwtTokenProvider jwtTokenProvider;
     @Override
     @Transactional
     public void save(Member member) {
@@ -84,5 +92,38 @@ public class MemberServiceV1 implements MemberService{
     @Override
     public List<Member> findAll() {
         return memberRepository.findAll();
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+
+        Member member = memberRepository.findByEmail(request.email()).orElseThrow(
+                () -> new RuntimeException("member not found")
+        );
+        if(!BcryptUtil.matchPassword(request.password(), member.getPassword())){
+            throw new CustomException(ErrorCode.PASSWORD_DOES_NOT_MATCH);
+        }
+        AuthInformation authInformation = new AuthInformation(member);
+        String accessToken = jwtTokenProvider.generateAccessToken(authInformation);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authInformation);
+        MemberCommonResponse memberCommonResponse = new MemberCommonResponse(member);
+        return new LoginResponse(accessToken,refreshToken, memberCommonResponse);
+    }
+
+    @Override
+    public LoginResponse renewToken(String refreshToken) {
+        AuthInformation authInformation = jwtTokenProvider.verifyRefreshToken(refreshToken);
+        Member member = memberRepository.findById(authInformation.member_id()).orElseThrow(
+                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND)
+        );
+        String newAccessToken = jwtTokenProvider.generateAccessToken(authInformation);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authInformation);
+        MemberCommonResponse memberCommonResponse = new MemberCommonResponse(member);
+        return new LoginResponse(newAccessToken, newRefreshToken, memberCommonResponse);
+    }
+
+    @Override
+    public void logout() {
+
     }
 }
