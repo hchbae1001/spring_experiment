@@ -1,7 +1,7 @@
 package bae.springexperiment.entity.enumerate;
 
 public enum Role {
-    NORMAL,
-    MANAGER,
-    ADMIN
+    normal,
+    manager,
+    admin
 }
