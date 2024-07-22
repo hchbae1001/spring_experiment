@@ -1,10 +1,7 @@
 package bae.springexperiment.member.dto.request;
 
-public record SaveMemberRequest(
+public record LoginRequest(
         String email,
-        String name,
-        String nickname,
-        String phone,
         String password
 ) {
 }
