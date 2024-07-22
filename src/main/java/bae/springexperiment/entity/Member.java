@@ -1,5 +1,6 @@
 package bae.springexperiment.entity;
 
+import bae.springexperiment.entity.enumerate.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -48,5 +49,10 @@ public class Member {
 
     @Column(name = "password")
     private String password;
+    
+    @Enumerated(EnumType.STRING)
+    @ColumnDefault("normal")
+    @Column(name = "role")
+    private Role role;
 
 }
