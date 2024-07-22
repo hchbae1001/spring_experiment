@@ -1,5 +1,7 @@
 package bae.springexperiment.config;
 
+import bae.springexperiment.config.jwt.JwtAuthenticationFilter;
+import bae.springexperiment.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,19 +17,25 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final JwtTokenProvider jwtTokenProvider;
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**")
-                        //Todo - after complete login function
-//                        .requestMatchers("/api/v1/member/login", "api/v1/member/findEmail")
+                        .requestMatchers(
+                                "/api/v1/member/login", "/api/v1/member/",
+                                "/api/v1/member/renew"
+                        )
                         .permitAll()
                         .anyRequest().authenticated())
-//                .addFilterBefore(/**Todo- JwtAuthentication here())*/,UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 .httpBasic(HttpBasicConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
-
 }
