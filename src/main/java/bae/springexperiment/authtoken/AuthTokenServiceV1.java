@@ -39,7 +39,7 @@ public class AuthTokenServiceV1 implements AuthTokenService{
     }
 
     @Override
-    public void saveAuthToken(AuthToken authToken) {
+    public void save(AuthToken authToken) {
 
     }
 }

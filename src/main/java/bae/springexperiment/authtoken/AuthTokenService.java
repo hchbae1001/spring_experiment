@@ -50,6 +50,6 @@ public interface AuthTokenService {
      *
      * @param authToken The AuthToken to be saved.
      */
-    void saveAuthToken(AuthToken authToken);
+    void save(AuthToken authToken);
 
 }
