@@ -2,6 +2,7 @@ package bae.springexperiment.error;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
@@ -22,6 +23,8 @@ public enum ErrorCode {
     EXPIRED_TOKEN(401, "Token has expired."),
     INVALID_REFRESH_TOKEN(401, "Invalid refresh token."),
     EXPIRED_REFRESH_TOKEN(401, "Refresh token has expired."),
+
+    ALREADY_REGISTERED_DEVICE_TYPE(HttpStatus.NOT_ACCEPTABLE.value(), "Already registered deviceType"),
 
     INVALID_PHONE_NUMBER(400, "Invalid phone number."),
     PHONE_NOT_FOUND(404, "Phone number not found."),
