@@ -112,10 +112,10 @@ public class AuthTokenServiceTest {
     @DisplayName("Pass_AuthTokenService_updateRefreshToken")
     void updateRefreshToken(){
         AuthToken phone = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.phone);
-        phone.setRefreshToken("ios_phone_updated_refreshToken");
-        authTokenService.save(phone);
+        String newRefreshToken = "ios_phone_updated_refreshToken";
+        authTokenService.updateRefreshToken(setupMember.getId(), DeviceType.phone ,newRefreshToken);
         AuthToken updatedPhone = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.phone);
-        assertThat(updatedPhone.getRefreshToken()).isEqualTo("ios_phone_updated_refreshToken");
+        assertThat(updatedPhone.getRefreshToken()).isEqualTo(newRefreshToken);
     }
-    
+
 }
