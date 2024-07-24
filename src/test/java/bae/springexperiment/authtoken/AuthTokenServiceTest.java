@@ -55,7 +55,7 @@ public class AuthTokenServiceTest {
         authTokenService.save(token);
         authTokenService.save(token2);
 
-        List<AuthToken> allByMemberId = authTokenService.findAllByMemberId(setupMember.getId());
+        List<AuthToken> allByMemberId = authTokenService.findByMemberId(setupMember.getId());
         assertThat(allByMemberId.size()).isEqualTo(2);
     }
 

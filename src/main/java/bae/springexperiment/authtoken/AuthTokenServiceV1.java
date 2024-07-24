@@ -14,12 +14,12 @@ public class AuthTokenServiceV1 implements AuthTokenService{
 
 
     @Override
-    public List<AuthToken> findAuthTokensByMemberId() {
+    public List<AuthToken> findByMemberId() {
         return List.of();
     }
 
     @Override
-    public List<AuthToken> findAuthTokensByMemberId(Long member_id) {
+    public List<AuthToken> findByMemberId(Long member_id) {
         return List.of();
     }
 

@@ -11,7 +11,7 @@ public interface AuthTokenService {
      *
      * @return List of AuthTokens for the current member.
      */
-    List<AuthToken> findAuthTokensByMemberId();
+    List<AuthToken> findByMemberId();
 
     /**
      * This method retrieves the list of AuthTokens for a specified member by member_id.
@@ -19,7 +19,7 @@ public interface AuthTokenService {
      * @param member_id The ID of the member whose AuthTokens are to be retrieved.
      * @return List of AuthTokens for the specified member.
      */
-    List<AuthToken> findAuthTokensByMemberId(Long member_id);
+    List<AuthToken> findByMemberId(Long member_id);
 
     /**
      * This method retrieves an AuthToken for the currently authenticated member and specified device type using Spring Security.
