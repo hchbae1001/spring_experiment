@@ -17,4 +17,7 @@ public interface AuthTokenRepository extends JpaRepository<AuthToken, Long> {
     void deleteAllByMemberId(Long member_id);
     void deleteByMemberIdAndRefreshToken(Long member_id, String refreshToken);
     void deleteByMemberIdAndDeviceType(Long member_id, DeviceType deviceType);
+
+    Boolean existsByMemberId(Long member_id);
+    Boolean existsByMemberIdAndDeviceType(Long member_id, DeviceType deviceType);
 }
