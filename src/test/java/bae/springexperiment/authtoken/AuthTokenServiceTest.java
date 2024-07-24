@@ -4,9 +4,12 @@ import bae.springexperiment.entity.AuthToken;
 import bae.springexperiment.entity.Member;
 import bae.springexperiment.entity.enumerate.DeviceType;
 import bae.springexperiment.entity.enumerate.OS;
+import bae.springexperiment.error.CustomException;
 import bae.springexperiment.member.MemberService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -65,4 +69,53 @@ public class AuthTokenServiceTest {
         memberService.deleteById(setupMember.getId());
     }
 
+    @Test
+    @DisplayName("Pass_AuthTokenService_findByMemberId")
+    void findByMemberId(){
+        assertThat(authTokenService.findByMemberId(setupMember.getId()).size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("Pass_AuthTokenService_findByMemberIdAndDeviceType")
+    void findByMemberIdAndDeviceType(){
+        AuthToken tablet = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.tablet);
+        AuthToken phone = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.phone);
+        assertThat(tablet).isNotNull();
+        assertThat(phone).isNotNull();
+        assertThatThrownBy(()-> authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.web))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    @DisplayName("Fail_AuthTokenService_WhenMultipleLoginsOnSameDeviceType")
+    void save() {
+        AuthToken token = AuthToken.builder()
+                .member(setupMember)
+                .os(OS.ios)
+                .deviceType(DeviceType.phone)
+                .refreshToken("ios_phone_refreshToken")
+                .build();
+        assertThatThrownBy(()-> authTokenService.save(token))
+                .isInstanceOf(CustomException.class);
+
+        AuthToken token2 = AuthToken.builder()
+                .member(setupMember)
+                .os(OS.ios)
+                .deviceType(DeviceType.tablet)
+                .refreshToken("ios_tablet_refreshToken")
+                .build();
+        assertThatThrownBy(()-> authTokenService.save(token2))
+                .isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    @DisplayName("Pass_AuthTokenService_updateRefreshToken")
+    void updateRefreshToken(){
+        AuthToken phone = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.phone);
+        phone.setRefreshToken("ios_phone_updated_refreshToken");
+        authTokenService.save(phone);
+        AuthToken updatedPhone = authTokenService.findByMemberIdAndDeviceType(setupMember.getId(), DeviceType.phone);
+        assertThat(updatedPhone.getRefreshToken()).isEqualTo("ios_phone_updated_refreshToken");
+    }
+    
 }
