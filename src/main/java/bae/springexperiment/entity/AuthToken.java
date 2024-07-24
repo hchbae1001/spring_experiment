@@ -4,9 +4,9 @@ import bae.springexperiment.entity.enumerate.DeviceType;
 import bae.springexperiment.entity.enumerate.OS;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "AUTH_TOKEN")
 public class AuthToken {
     @Id
