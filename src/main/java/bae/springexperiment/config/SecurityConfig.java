@@ -5,6 +5,7 @@ import bae.springexperiment.config.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,10 +28,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/v1/member/login", "/api/v1/member/",
-                                "/api/v1/member/renew"
-                        )
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/member/login", "/api/v1/member/", "/api/v1/member/renew")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/member/{member_id}")
                         .permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
