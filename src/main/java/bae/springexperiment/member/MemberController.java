@@ -2,10 +2,8 @@ package bae.springexperiment.member;
 
 import bae.springexperiment.CommonResponse;
 import bae.springexperiment.entity.Member;
-import bae.springexperiment.member.dto.request.LogOutRequest;
-import bae.springexperiment.member.dto.request.LoginRequest;
-import bae.springexperiment.member.dto.request.SaveMemberRequest;
-import bae.springexperiment.member.dto.request.UpdateMemberRequest;
+import bae.springexperiment.member.dto.request.*;
+import bae.springexperiment.member.dto.response.LoginResponse;
 import bae.springexperiment.member.dto.response.MemberCommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,61 +21,78 @@ public class MemberController {
     private final MemberService memberService;
     private final MemberFacade memberFacade;
 
-    @GetMapping("/test")
-    public String test() {
-        return "test";
-    }
-
     @PostMapping("/")
-    public void save(@RequestBody SaveMemberRequest request){
-        memberService.save(MemberMapper.saveMemberRequestToEntity(request));
+    public void save(HttpServletRequest request, @RequestBody SaveMemberRequest saveMemberRequest) {
+        log.info("Received request to save member with email: {} | URI: {}", saveMemberRequest.email(), request.getRequestURI());
+        memberFacade.save(saveMemberRequest);
+        log.info("Successfully saved member with email: {} | URI: {}", saveMemberRequest.email(), request.getRequestURI());
     }
 
     @GetMapping("/{member_id}")
-    public ResponseEntity<?> findById(@PathVariable long member_id){
-        Member member = memberService.findById(member_id);
+    public ResponseEntity<?> findById(HttpServletRequest request, @PathVariable long member_id) {
+        log.info("Received request to find member by ID: {} | URI: {}", member_id, request.getRequestURI());
+        Member member = memberFacade.findById(member_id);
+        log.info("Successfully found member by ID: {} | URI: {}", member_id, request.getRequestURI());
         return ResponseEntity.ok(CommonResponse.success(new MemberCommonResponse(member)));
     }
 
     @GetMapping("/list")
-    public ResponseEntity<?> findAll(){
+    public ResponseEntity<?> findAll(HttpServletRequest request) {
+        log.info("Received request to list all members | URI: {}", request.getRequestURI());
         List<MemberCommonResponse> list = memberService.findAll().stream()
                 .map(MemberCommonResponse::new)
                 .toList();
+        log.info("Successfully listed all members | URI: {}", request.getRequestURI());
         return ResponseEntity.ok(CommonResponse.success(list));
     }
 
     @DeleteMapping("/hard/{member_id}")
-    public void hardDelete(@PathVariable long member_id){
+    public void hardDelete(HttpServletRequest request, @PathVariable long member_id) {
+        log.info("Received request to hard delete member by ID: {} | URI: {}", member_id, request.getRequestURI());
         memberService.deleteById(member_id);
+        log.info("Successfully hard deleted member by ID: {} | URI: {}", member_id, request.getRequestURI());
     }
 
     @DeleteMapping("/soft/{member_id}")
-    public void softDelete(@PathVariable long member_id){
-        memberService.softDeleteById(member_id);
+    public void softDelete(HttpServletRequest request, @PathVariable long member_id) {
+        log.info("Received request to soft delete member by ID: {} | URI: {}", member_id, request.getRequestURI());
+        memberFacade.softDeleteById(member_id);
+        log.info("Successfully soft deleted member by ID: {} | URI: {}", member_id, request.getRequestURI());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request){
-        return ResponseEntity.ok(CommonResponse.success(memberFacade.login(request)));
+    public ResponseEntity<?> login(HttpServletRequest request, @RequestBody LoginRequest loginRequest) {
+        log.info("Received login request for email: {} | URI: {}", loginRequest.email(), request.getRequestURI());
+        LoginResponse response = memberFacade.login(loginRequest);
+        log.info("Successfully logged in user with email: {} | URI: {}", loginRequest.email(), request.getRequestURI());
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @PostMapping("/renew")
-    public ResponseEntity<?> renewToken(HttpServletRequest request){
+    public ResponseEntity<?> renewToken(HttpServletRequest request, @RequestBody LogOutRequest logOutRequest) {
         String refreshToken = request.getHeader("x-refresh-token");
         if (refreshToken == null || refreshToken.isEmpty()) {
+            log.warn("Refresh token is missing in the request | URI: {}", request.getRequestURI());
             throw new IllegalArgumentException("Refresh token is missing");
         }
-        return ResponseEntity.ok(CommonResponse.success(memberFacade.renewToken(refreshToken)));
+        log.info("Received token renew request | URI: {}", request.getRequestURI());
+        RenewTokenRequest renewTokenRequest = new RenewTokenRequest(refreshToken, logOutRequest.deviceType().toString());
+        LoginResponse response = memberFacade.renewToken(renewTokenRequest);
+        log.info("Successfully renewed token | URI: {}", request.getRequestURI());
+        return ResponseEntity.ok(CommonResponse.success(response));
     }
 
     @PutMapping("/{member_id}")
-    public void update(@PathVariable Long member_id, @RequestBody UpdateMemberRequest request){
-        memberService.update(member_id, request);
+    public void update(HttpServletRequest request, @PathVariable Long member_id, @RequestBody UpdateMemberRequest updateMemberRequest) {
+        log.info("Received request to update member by ID: {} | URI: {}", member_id, request.getRequestURI());
+        memberFacade.update(member_id, updateMemberRequest);
+        log.info("Successfully updated member by ID: {} | URI: {}", member_id, request.getRequestURI());
     }
 
     @GetMapping("/logout")
-    public void logout(@RequestBody LogOutRequest request){
-        memberFacade.logout(request);
+    public void logout(HttpServletRequest request, @RequestBody LogOutRequest logOutRequest) {
+        log.info("Received logout request | URI: {}", request.getRequestURI());
+        memberFacade.logout(logOutRequest);
+        log.info("Successfully logged out user | URI: {}", request.getRequestURI());
     }
 }
