@@ -1,36 +1,54 @@
 package bae.springexperiment.member;
 
+import bae.springexperiment.authtoken.AuthTokenService;
+import bae.springexperiment.config.jwt.Auth;
 import bae.springexperiment.entity.Member;
 import bae.springexperiment.error.CustomException;
 import bae.springexperiment.error.ErrorCode;
-import bae.springexperiment.member.dto.request.LoginRequest;
-import bae.springexperiment.member.dto.response.LoginResponse;
-import bae.springexperiment.member.dto.response.MemberCommonResponse;
-import bae.springexperiment.util.BcryptUtil;
-import bae.springexperiment.config.jwt.AuthInformation;
-import bae.springexperiment.config.jwt.JwtTokenProvider;
+import bae.springexperiment.member.dto.request.UpdateMemberRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceV1 implements MemberService{
     private final MemberRepository memberRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+
+    @Override
+    public Member findByNickName(String nickname) {
+        return memberRepository.findByNickname(nickname).orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_INFO));
+    }
+
+    @Override
+    public Member findById(long member_id) {
+        return memberRepository.findById(member_id).orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_INFO));
+    }
+
+    @Override
+    public Member findByEmail(String email) {
+        return memberRepository.findByEmail(email).orElseThrow(() -> new CustomException(ErrorCode.NOT_EXIST_INFO));
+    }
+
+    @Override
+    public List<Member> findAll() {
+        return memberRepository.findAll();
+    }
+
     @Override
     @Transactional
     public void save(Member member) {
         if (memberRepository.existsByPhone(member.getPhone())) {
-            throw new RuntimeException("phone number already exists");
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_PHONE);
         }
         if (memberRepository.existsByNickname(member.getNickname())){
-            throw new RuntimeException("nickname already exists");
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
         }
         if (memberRepository.existsByEmail(member.getEmail())){
-            throw new RuntimeException("email already exists");
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_EMAIL);
         }
 
         memberRepository.save(member);
@@ -38,25 +56,21 @@ public class MemberServiceV1 implements MemberService{
 
     @Override
     @Transactional
-    public void update(Member member) {
-        Member existingMember = memberRepository.findById(member.getId()).orElseThrow(() -> new RuntimeException("Member not found"));
-
-        if (memberRepository.existsByPhoneAndIdNot(member.getPhone(), member.getId())) {
-            throw new RuntimeException("phone number already exists");
+    public void update(Long member_id, UpdateMemberRequest request) {
+        Member existingMember = findById(member_id);
+        if(!Auth.getMemberId().equals(existingMember.getId())){
+            throw new CustomException(ErrorCode.PERMISSION_DENIED);
         }
-
-        if (memberRepository.existsByNicknameAndIdNot(member.getNickname(), member.getId())) {
-            throw new RuntimeException("nickname already exists");
+        if (memberRepository.existsByPhoneAndIdNot(request.phone(), member_id)){
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_PHONE);
         }
-
-        if (memberRepository.existsByEmailAndIdNot(member.getEmail(), member.getId())){
-            throw new RuntimeException("Email already exists");
+        if (memberRepository.existsByNicknameAndIdNot(request.nickname(), member_id)) {
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
         }
-
-        existingMember.setName(member.getName());
-        existingMember.setPhone(member.getPhone());
-        existingMember.setNickname(member.getNickname());
-        existingMember.setEmail(member.getEmail());
+        if (memberRepository.existsByEmailAndIdNot(request.email(), member_id)){
+            throw new CustomException(ErrorCode.ALREADY_REGISTERED_EMAIL);
+        }
+        MemberMapper.updateMemberFromRequest(request,existingMember);
         memberRepository.save(existingMember);
     }
 
@@ -69,61 +83,8 @@ public class MemberServiceV1 implements MemberService{
     @Override
     @Transactional
     public void softDeleteById(long member_id) {
-        Member member = memberRepository.findById(member_id).orElseThrow(() -> new RuntimeException("Member not found"));
+        Member member = findById(member_id);
         member.setIsRemoved(!member.getIsRemoved());
         memberRepository.save(member);
-    }
-
-    @Override
-    public Member findByNickName(String nickname) {
-        return memberRepository.findByNickname(nickname).orElseThrow(() -> new RuntimeException("Member not found"));
-    }
-
-    @Override
-    public Member findById(long member_id) {
-        return memberRepository.findById(member_id).orElseThrow(() -> new RuntimeException("Member not found"));
-    }
-
-    @Override
-    public Member findByEmail(String email) {
-        return memberRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Member not found"));
-    }
-
-    @Override
-    public List<Member> findAll() {
-        return memberRepository.findAll();
-    }
-
-    @Override
-    public LoginResponse login(LoginRequest request) {
-
-        Member member = memberRepository.findByEmail(request.email()).orElseThrow(
-                () -> new RuntimeException("member not found")
-        );
-        if(!BcryptUtil.matchPassword(request.password(), member.getPassword())){
-            throw new CustomException(ErrorCode.PASSWORD_DOES_NOT_MATCH);
-        }
-        AuthInformation authInformation = new AuthInformation(member);
-        String accessToken = jwtTokenProvider.generateAccessToken(authInformation);
-        String refreshToken = jwtTokenProvider.generateRefreshToken(authInformation);
-        MemberCommonResponse memberCommonResponse = new MemberCommonResponse(member);
-        return new LoginResponse(accessToken,refreshToken, memberCommonResponse);
-    }
-
-    @Override
-    public LoginResponse renewToken(String refreshToken) {
-        AuthInformation authInformation = jwtTokenProvider.verifyRefreshToken(refreshToken);
-        Member member = memberRepository.findById(authInformation.member_id()).orElseThrow(
-                () -> new CustomException(ErrorCode.MEMBER_NOT_FOUND)
-        );
-        String newAccessToken = jwtTokenProvider.generateAccessToken(authInformation);
-        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authInformation);
-        MemberCommonResponse memberCommonResponse = new MemberCommonResponse(member);
-        return new LoginResponse(newAccessToken, newRefreshToken, memberCommonResponse);
-    }
-
-    @Override
-    public void logout() {
-
     }
 }
