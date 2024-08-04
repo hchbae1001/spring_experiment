@@ -49,7 +49,7 @@ public class MemberController {
     @DeleteMapping("/hard/{member_id}")
     public void hardDelete(HttpServletRequest request, @PathVariable long member_id) {
         log.info("Received request to hard delete member by ID: {} | URI: {}", member_id, request.getRequestURI());
-        memberService.deleteById(member_id);
+        memberFacade.deleteById(member_id);
         log.info("Successfully hard deleted member by ID: {} | URI: {}", member_id, request.getRequestURI());
     }
 

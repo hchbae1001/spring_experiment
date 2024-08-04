@@ -142,19 +142,27 @@ public class MemberFacadeV1 implements MemberFacade{
             log.warn("Permission denied for update. Member ID: {}", member_id);
             throw new CustomException(ErrorCode.PERMISSION_DENIED);
         }
-        Optional.ofNullable(request.phone()).ifPresent(phone -> {
+        Optional.ofNullable(request.phone())
+                .filter(phone -> !phone.isEmpty())
+                .ifPresent(phone -> {
             memberService.existsByPhoneAndIdNot(phone, member_id);
             existingMember.setPhone(phone);
         });
-        Optional.ofNullable(request.email()).ifPresent(email -> {
+        Optional.ofNullable(request.email())
+                .filter(email -> !email.isEmpty())
+                .ifPresent(email -> {
             memberService.existsByEmailAndIdNot(email, member_id);
             existingMember.setEmail(email);
         });
-        Optional.ofNullable(request.nickname()).ifPresent(nickname -> {
+        Optional.ofNullable(request.nickname())
+                .filter(nickname -> !nickname.isEmpty())
+                .ifPresent(nickname -> {
             memberService.existsByNicknameAndIdNot(nickname, member_id);
             existingMember.setNickname(nickname);
         });
-        Optional.ofNullable(request.password()).ifPresent(password -> existingMember.setPassword(BcryptUtil.encodedPassword(password)));
+        Optional.ofNullable(request.password())
+                .filter(password -> !password.isEmpty())
+                .ifPresent(password -> existingMember.setPassword(BcryptUtil.encodedPassword(password)));
 
         String redisKey = RedisKeyUtil.generateMemberKey(member_id);
         Member updatedMember = memberService.save(existingMember);
