@@ -80,6 +80,9 @@
     jwt.refreshSecret=
     ```
 
+## Dependency
+must start redis before run spring application
+
 ## Contribution
 
 1. Fork the project (https://github.com/hchbae1001/spring-experiment/fork).
