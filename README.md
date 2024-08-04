@@ -1,7 +1,7 @@
 # MemberService
 
 ## Introduction
-`MemberService` is a service that provides member management functionality. Given its various dependencies, we adopted the Facade pattern to efficiently manage these dependencies. This approach ensures a clear separation of roles across layers, enhancing maintainability and scalability.
+`MemberService` is a service that provides member management functionality. Given its various dependencies, I adopted the Facade pattern to efficiently manage these dependencies. This approach ensures a clear separation of roles across layers, enhancing maintainability and scalability.
 
 ## Architecture
 
@@ -100,3 +100,15 @@ Author: [hchbae1001](https://github.com/hchbae1001)
 ## Contact
 - Email: hchbae1001@gmail.com
 - GitHub: https://github.com/hchbae1001
+
+## Logging
+
+Upon successful API request, the logs will appear as follows:
+
+2024-08-04T15:45:11.304+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.springexperiment.config.LoggingAspect : ======= [80c11d35-103e-40aa-9b12-6ac912ce16a2] =======
+2024-08-04T15:45:11.304+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.springexperiment.config.LoggingAspect : [80c11d35-103e-40aa-9b12-6ac912ce16a2] Executing: findById | Args: [SecurityContextHolderAwareRequestWrapper[ org.springframework.security.web.header.HeaderWriterFilter$HeaderWriterRequest@1057ef29], 347]
+2024-08-04T15:45:11.304+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.s.member.MemberController : Received request to find member by ID: 347 | URI: /api/v1/member/347
+2024-08-04T15:45:11.368+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.s.member.MemberFacadeV1 : Member found in cache. Member ID: 347
+2024-08-04T15:45:11.413+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.s.member.MemberController : Successfully found member by ID: 347 | URI: /api/v1/member/347
+2024-08-04T15:45:11.414+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.springexperiment.config.LoggingAspect : [80c11d35-103e-40aa-9b12-6ac912ce16a2] Completed: findById in 110 ms | Result: <200 OK OK,CommonResponse[status=200, success=true, data=MemberCommonResponse[member_id=347, email=tester, name=alpha, nickname=나무늘보, phone=01033331111, created_at=2024-08-03T21:24:44, updated_at=2024-08-03T23:46:35]],[]>
+2024-08-04T15:45:11.416+09:00 INFO 14864 --- [springExperiment] [nio-8080-exec-3] b.springexperiment.config.LoggingAspect : ======= [80c11d35-103e-40aa-9b12-6ac912ce16a2] =======
