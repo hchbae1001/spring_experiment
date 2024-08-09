@@ -6,6 +6,7 @@ import bae.springexperiment.member.dto.request.*;
 import bae.springexperiment.member.dto.response.LoginResponse;
 import bae.springexperiment.member.dto.response.MemberCommonResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -49,7 +50,7 @@ public class MemberController {
     @DeleteMapping("/hard/{member_id}")
     public void hardDelete(HttpServletRequest request, @PathVariable long member_id) {
         log.info("Received request to hard delete member by ID: {} | URI: {}", member_id, request.getRequestURI());
-        memberFacade.deleteById(member_id);
+        memberService.deleteById(member_id);
         log.info("Successfully hard deleted member by ID: {} | URI: {}", member_id, request.getRequestURI());
     }
 
@@ -61,15 +62,17 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(HttpServletRequest request, @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(HttpServletRequest request, HttpServletResponse response, @RequestBody LoginRequest loginRequest) {
         log.info("Received login request for email: {} | URI: {}", loginRequest.email(), request.getRequestURI());
-        LoginResponse response = memberFacade.login(loginRequest);
+        LoginResponse result = memberFacade.login(loginRequest);
+        response.setHeader("Authorization", "Bearer "+result.accessToken());
+        response.setHeader("x-refresh-token", result.refreshToken());
         log.info("Successfully logged in user with email: {} | URI: {}", loginRequest.email(), request.getRequestURI());
-        return ResponseEntity.ok(CommonResponse.success(response));
+        return ResponseEntity.ok(CommonResponse.success(result.member()));
     }
 
     @PostMapping("/renew")
-    public ResponseEntity<?> renewToken(HttpServletRequest request, @RequestBody LogOutRequest logOutRequest) {
+    public ResponseEntity<?> renewToken(HttpServletRequest request, HttpServletResponse response, @RequestBody LogOutRequest logOutRequest) {
         String refreshToken = request.getHeader("x-refresh-token");
         if (refreshToken == null || refreshToken.isEmpty()) {
             log.warn("Refresh token is missing in the request | URI: {}", request.getRequestURI());
@@ -77,9 +80,11 @@ public class MemberController {
         }
         log.info("Received token renew request | URI: {}", request.getRequestURI());
         RenewTokenRequest renewTokenRequest = new RenewTokenRequest(refreshToken, logOutRequest.deviceType().toString());
-        LoginResponse response = memberFacade.renewToken(renewTokenRequest);
+        LoginResponse result = memberFacade.renewToken(renewTokenRequest);
+        response.setHeader("Authorization", "Bearer "+result.accessToken());
+        response.setHeader("x-refresh-token", result.refreshToken());
         log.info("Successfully renewed token | URI: {}", request.getRequestURI());
-        return ResponseEntity.ok(CommonResponse.success(response));
+        return ResponseEntity.ok(CommonResponse.success(result.member()));
     }
 
     @PutMapping("/{member_id}")
