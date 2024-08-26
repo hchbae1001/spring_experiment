@@ -56,6 +56,9 @@ public class MemberFacadeV1 implements MemberFacade{
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(authInformation);
 
         String redisKey = RedisKeyUtil.generateAccessTokenKey(authInformation.member_id(), deviceType);
+        String accessTokenForBlackList = RedisKeyUtil.generateBlackListKey(redisKey);
+        String blackListKey = RedisKeyUtil.generateBlackListKey(accessTokenForBlackList);
+        redisUtil.setRedisString(blackListKey, "1", accessExpiration);
         redisUtil.setRedisString(redisKey, String.valueOf(authInformation.member_id()), accessExpiration);
 
         log.info("Token renewed for member ID: {}", authInformation.member_id());
